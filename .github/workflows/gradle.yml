@@ -17,8 +17,8 @@ permissions:
 env:
   PROJECT_NAME: ffxiv
   S3_BUCKET_NAME: ffxiv-springboot-build
-  CODEDEPLOY_NAME: freelec-springboot2-webservice
-  CODEDEPLOY_GROUP: freelec-springboot2-webservice-group
+  CODE_DEPLOY_APPLICATION_NAME: freelec-springboot2-webservice
+  CODE_DEPLOY_DEPLOYMENT_GROUP_NAME: freelec-springboot2-webservice-group
 
 jobs:
   build:
@@ -47,6 +47,11 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       run: aws s3 cp --region ap-northeast-2 ./$GITHUB_SHA.zip s3://$S3_BUCKET_NAME/$PROJECT_NAME/$GITHUB_SHA.zip
 
-#    - name: Code Deploy
-#      run: aws deploy create-deployment --application-name $CODEDEPLOY_NAME --deployment-config-name CodeDeployDefault.AllAtOnce --deployment-group-name $CODEDEPLOY_GROUP --s3-location bucket=$S3_BUCKET_NAME/$PROJECT_NAME,bundleType=zip,key=$GITHUB_SHA.zip
-      
+    - name: Deploy to AWS EC2 from S3
+      run: |
+        aws deploy create-deployment \\
+          --application-name ${{ env.CODE_DEPLOY_APPLICATION_NAME }} \\
+          --deployment-config-name CodeDeployDefault.AllAtOnce \\
+          --deployment-group-name ${{ env.CODE_DEPLOY_DEPLOYMENT_GROUP_NAME }} \\
+          --s3-location bucket=$S3_BUCKET_NAME/$$PROJECT_NAME,key=$GITHUB_SHA.zip,bundleType=zip
+
